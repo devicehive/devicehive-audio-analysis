@@ -16,15 +16,7 @@
 import pyaudio
 
 
-def init():
-    pass
-
-
-def deinit():
-    pass
-
-
-class AudioDevice:
+class AudioDevice(object):
     def __init__(self):
         self.pa = pyaudio.PyAudio()
         self.in_stream = self.pa.open(format=pyaudio.paInt16, channels=1,

@@ -42,13 +42,13 @@ def is_capture_timeout(start, period):
 
 def capture(capture_period, cycles):
     # local import to reduce start-up time
-    from audio_device import Device
+    from audio_device import AudioDevice
     from process import WavProcessor
 
-    # processor = WavProcessor()
+    ad = AudioDevice()
     counter = 0
 
-    with Device() as ad, WavProcessor() as proc:
+    with WavProcessor() as proc:
         while True:
             if cycles and counter >= cycles:
                 break

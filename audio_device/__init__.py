@@ -14,18 +14,9 @@
 # ==============================================================================
 
 try:
-    from .audio_device_pulse import *
-except ImportError:
-    from .audio_device_pyaduio import *
+    from .audio_device_pulse import AudioDevice
+except (ImportError, OSError):
+    from .audio_device_pyaduio import AudioDevice
 
 
-__all__ = ['Device']
-
-
-class Device(object):
-    def __enter__(self):
-        init()
-        return AudioDevice()
-
-    def __exit__(self, *args, **kwargs):
-        deinit()
+__all__ = ['AudioDevice']

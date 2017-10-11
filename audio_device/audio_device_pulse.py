@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+import atexit
 import ctypes
 import logging
 
@@ -61,7 +62,7 @@ def deinit():
     pa.pa_simple_free(out_stream)
 
 
-class AudioDevice:
+class AudioDevice(object):
     def __init__(self):
         pa.pa_simple_flush(in_stream)
         pa.pa_simple_flush(out_stream)
@@ -80,3 +81,7 @@ class AudioDevice:
         data = ctypes.create_string_buffer(n)
         pa.pa_simple_read(in_stream, data, n, ctypes.byref(error))
         return data.raw
+
+
+init()
+atexit.register(deinit)
