@@ -13,10 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 
+import os
 import time
 import argparse
-import logging
+import logging.config
 import numpy as np
+from scipy.io import wavfile
 
 from utils import general
 
@@ -26,13 +28,41 @@ parser = argparse.ArgumentParser(description='Capture and process audio')
 parser.add_argument('-p', '--capture_period', type=int, min=1, max=10,
                     default=5, action=general.MinMaxAction, metavar='PERIOD',
                     help='Capture period in seconds')
-parser.add_argument('-c', '--cycles', type=int, min=1, default=None,
+parser.add_argument('-c', '--cycles', type=int, min=1,
                     action=general.MinMaxAction, metavar='CYCLES',
                     help='Number of capture cycles (infinite by default)')
+parser.add_argument('-s', '--save_path', type=str,
+                    action=general.PathExistsAction,
+                    help='Save captured audio samples to provided path')
+
+
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'simple': {
+            'format': '[%(levelname)s] %(asctime)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'audio_analysis': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+    }
+}
+
+logging.config.dictConfig(LOGGING)
 
 
 logger = logging.getLogger('audio_analysis')
-logger.setLevel('DEBUG')
 
 
 def is_capture_timeout(start, period):
@@ -40,20 +70,25 @@ def is_capture_timeout(start, period):
     return current-start > period
 
 
-def capture(capture_period, cycles):
+def capture(capture_period, cycles, save_path):
     # local import to reduce start-up time
-    from audio_device import AudioDevice
     from process import WavProcessor
 
-    ad = AudioDevice()
-    counter = 0
-
     with WavProcessor() as proc:
+        # TODO: pulseaudio init stream globally and start write data to it
+        # right after init process is completed.
+        # So we need to move stream init or keep this import here to avoid data
+        # in stream while tensorflow init process.
+        from audio_device import AudioDevice
+
+        ad = AudioDevice()
+        count = 0
+
         while True:
-            if cycles and counter >= cycles:
+            if cycles and count >= cycles:
                 break
 
-            process_buf = np.empty(0)
+            capture_buf = bytes()
             start_time = time.time()
             logger.info('Start recording cycle.')
             while not is_capture_timeout(start_time, capture_period):
@@ -62,16 +97,22 @@ def capture(capture_period, cycles):
                     logger.debug('Buffer is empty.')
                     return
 
-                process_buf = np.append(
-                    process_buf, np.frombuffer(buf, dtype=np.int16))
-
+                capture_buf += buf
             logger.info('Stop recording cycle.')
 
+            logger.info('Start processing.')
+            process_buf = np.frombuffer(capture_buf, dtype=np.int16)
             predictions = proc.get_predictions(
                 CAPTURE_RATE, process_buf, format=True)
             logger.info('Predictions: {}'.format(predictions))
+            logger.info('Stop processing.')
 
-            counter += 1
+            if save_path:
+                f_path = os.path.join(save_path, 'record_{}.wav'.format(count))
+                wavfile.write(f_path, CAPTURE_RATE, process_buf)
+                logger.info('"{}" saved.'.format(f_path))
+
+            count += 1
 
 
 if __name__ == '__main__':

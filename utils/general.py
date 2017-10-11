@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+import os
 import argparse
 
 
@@ -33,5 +34,15 @@ class MinMaxAction(argparse.Action):
         if self.max is not None and values > self.max:
             parser.error(
                 'Maximum value for "{}" is {}'.format(option_string, self.max))
+
+        setattr(namespace, self.dest, values)
+
+
+class PathExistsAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not os.path.exists(values):
+            parser.error('"{}" doesn\'t exist'.format(values))
+        if not os.path.isdir(values):
+            parser.error('"{}" isn\'t a directory'.format(values))
 
         setattr(namespace, self.dest, values)
