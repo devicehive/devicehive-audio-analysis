@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>DeviceHive LoRa gateway</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    input {
+      width: 100%
+    }
+  </style>
+</head>
+<body>
+  <form method="POST">
+    <label for="id_url">DeviceHive URL:</label>
+    <input id="id_url" type="text" name="url" value="${url}">
+    <br><br>
+
+    <label for="id_token">DeviceHive RefreshToken:</label>
+    <input id="id_token" type="password" name="token" value="${token}">
+    <br><br>
+
+    <label for="id_deviceid">DeviceHive DeviceID:</label>
+    <input id="id_deviceid" type="text" name="deviceid" value="${deviceid}">
+    <br><br>
+
+    <label for="id_frequency">LoRa Frequency:</label>
+    <input id="id_frequency" type="text" name="frequency" value="${frequency}">
+    <br><br>
+
+    <button>Save</button>
+  </form>
+</body>
+</html>
