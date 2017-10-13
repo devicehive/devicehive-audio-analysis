@@ -35,7 +35,7 @@ To capture and process audio from mic run
 ```bash
 python capture.py
 ```
-It will capture and process 5 seconds long samples in cycle.\
+It will capture and process samples in a loop.\
 To get info about parameters run
 ```bash
 python capture.py --help
@@ -47,4 +47,4 @@ To train classification model next resources have been used:
 * [YouTube-8M model](https://github.com/google/youtube-8m)
 * [Tensorflow vggish model](https://github.com/tensorflow/models/tree/master/research/audioset)
 
-You can try to train YouTube-8m model with more steps/samples to get more accuracy.
+You can try to train model with more steps/samples to get more accuracy.
