@@ -39,7 +39,7 @@ logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('audio_analysis.capture')
 
 
-class Capure(object):
+class Capture(object):
     _ask_data = None
     _captor = None
     _save_path = None
@@ -96,5 +96,5 @@ class Capure(object):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    c = Capure(**vars(args))
+    c = Capture(**vars(args))
     c.start()
