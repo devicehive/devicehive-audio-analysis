@@ -15,13 +15,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
 
 import numpy as np
 import resampy
 
+from audio import params
 from . import mel_features
-import params
 
 
 def waveform_to_examples(data, sample_rate):

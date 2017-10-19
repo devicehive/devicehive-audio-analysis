@@ -11,21 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
 
 import csv
 import os
 import numpy as np
 import tensorflow as tf
-import params
-from utils import vggish, youtube8m
+
+from . import params
+from .utils import vggish, youtube8m
+
+
+__all__ = ['WavProcessor', 'format_predictions']
 
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 
 
 def format_predictions(predictions):
-    return ', '.join('{0}: {1}'.format(*p) for p in predictions)
+    return ', '.join('{0}: {1:.2f}'.format(*p) for p in predictions)
 
 
 class WavProcessor(object):
@@ -46,6 +49,9 @@ class WavProcessor(object):
         return self
 
     def __exit__(self, *args, **kwargs):
+        self.close()
+
+    def close(self):
         if self._vggish_sess:
             self._vggish_sess.close()
 
@@ -76,16 +82,12 @@ class WavProcessor(object):
             for row in reader:
                 self._class_map[int(row[0])] = row[2]
 
-    def get_predictions(self, sample_rate, data, format=False):
+    def get_predictions(self, sample_rate, data):
         samples = data / 32768.0  # Convert to [-1.0, +1.0]
         examples_batch = vggish.input.waveform_to_examples(samples, sample_rate)
         features = self._get_features(examples_batch)
         predictions = self._process_features(features)
         predictions = self._filter_predictions(predictions)
-
-        if format:
-            predictions = format_predictions(predictions)
-
         return predictions
 
     def _filter_predictions(self, predictions):

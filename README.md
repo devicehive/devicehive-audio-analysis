@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+
 # Devicehive Audio Analysis
 Audio classification feature demo
 
@@ -10,13 +12,12 @@ No guaranties for python 2.\*
 * Get a copy of this repo
 * Install system packages
 ```bash
-sudo apt-get install libportaudio2 portaudio19-dev libpulse-dev
+sudo apt-get install libportaudio2 portaudio19-dev
 ```
 * Install python requirements
 ```bash
 pip install -r requirements.txt
 ```
-_Note 'libpulse-dev' should be installed only for PulseAudio based devices. 'pyaduio', 'libportaudio2' and 'portaudio19-dev' should be installed on other devices, for example alsa capable._
 
 * Download and extract saved models to source directory
 ```bash
@@ -25,13 +26,15 @@ tar -xzf models.tar.gz
 ```
 
 ## Running
-To process prerecorded wav file run
+#### To process prerecorded wav file
+run
 ```bash
 python parse_file.py path_to_your_file.wav
 ```
-_Note file should have 16000 rate_
+_Note: file should have 16000 rate_
 
-To capture and process audio from mic run
+#### To capture and process audio from mic
+run
 ```bash
 python capture.py
 ```
@@ -40,6 +43,19 @@ To get info about parameters run
 ```bash
 python capture.py --help
 ```
+
+#### To start web server
+run
+```bash
+python daemon.py
+```
+It will:
+* Capture data form your mic
+* Process data
+* Send predictions to web interface
+* Send predictions to devicehive (temporally disabled)
+
+Also you can configure your devicehive connection though this web interface.
 
 ## Useful info
 To train classification model next resources have been used:

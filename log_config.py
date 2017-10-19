@@ -11,12 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
 
-try:
-    from .audio_device_pulse import AudioDevice
-except (ImportError, OSError):
-    from .audio_device_pyaduio import AudioDevice
-
-
-__all__ = ['AudioDevice']
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'simple': {
+            'format': '[%(levelname)s] %(asctime)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'audio_analysis': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+    }
+}

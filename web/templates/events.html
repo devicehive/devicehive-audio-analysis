@@ -17,7 +17,7 @@ limitations under the License.
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>AudioAnalysis - DeviceHive Config</title>
+  <title>AudioAnalysis - Audio capture events</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/main.css">
@@ -27,23 +27,32 @@ limitations under the License.
   <div class="nav-item"><a href="/">DH Config</a></div>
   <div class="nav-item"><a href="/events/">Capture events</a></div>
 </div>
-  <form method="POST">
-    <div class="input-block">
-      <label for="id_url">DeviceHive URL:</label>
-      <input class="input-text" id="id_url" type="text" name="url" value="${url}">
-    </div>
-
-    <div class="input-block">
-      <label for="id_token">DeviceHive RefreshToken:</label>
-      <input class="input-text" id="id_token" type="password" name="token" value="${token}">
-    </div>
-
-    <div class="input-block">
-      <label for="id_deviceid">DeviceHive DeviceID:</label>
-      <input class="input-text" id="id_deviceid" type="text" name="deviceid" value="${deviceid}">
-    </div>
-
-    <button>Save</button>
-  </form>
+<div id="id_events_holder" class="events-holder">
+</div>
 </body>
 </html>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const eventsHolder = document.getElementById('id_events_holder');
+      function httpGetAsync(url, callback)
+      {
+          var xmlHttp = new XMLHttpRequest();
+          xmlHttp.onreadystatechange = function() {
+              if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
+                  callback(xmlHttp.responseText);
+          };
+          xmlHttp.open("GET", url, true);
+          xmlHttp.send(null);
+      }
+
+      function getEvents() {
+          function setEvents(events) {
+              eventsHolder.innerHTML = events;
+          }
+          httpGetAsync('/events/update/', setEvents);
+      }
+      getEvents();
+      setInterval(getEvents, 1000);
+  });
+</script>
