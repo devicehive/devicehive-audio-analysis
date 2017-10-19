@@ -31,7 +31,7 @@ https://github.com/tensorflow/models/blob/master/research/slim/nets/vgg.py
 """
 
 import tensorflow as tf
-import params
+from audio import params
 
 slim = tf.contrib.slim
 
