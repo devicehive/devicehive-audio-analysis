@@ -55,6 +55,54 @@ class DeviceHiveHandler(Handler):
         print(command)
 
 
+class DHStatus(object):
+    _status = ''
+    _error = ''
+
+    UNKNOWN = 'unknown'
+    CONNECTED = 'connected'
+    DISCONNECTED = 'disconnected'
+    CONNECTING = 'connecting'
+
+    status_map = {
+        CONNECTED: 'success',
+        DISCONNECTED: 'error',
+        CONNECTING: 'inprogress'
+    }
+
+    def __init__(self):
+        self._status = self.UNKNOWN
+
+    @property
+    def status(self):
+        return self._status
+
+    def set_status(self, status, error=''):
+        self._status = status
+        self._error = error
+
+    def set_connected(self):
+        self.set_status(self.CONNECTED)
+
+    def set_disconnected(self, error=''):
+        self.set_status(self.DISCONNECTED, error)
+
+    def set_connecting(self):
+        self.set_status(self.CONNECTING)
+
+    @property
+    def error(self):
+        return self._error
+
+    @property
+    def data(self):
+        return {
+            'status': self.status,
+            'class': self.status_map.get(self.status, ''),
+            'error': self.error
+        }
+
+
 class Config(object):
     data_path = ''
     _data = None
@@ -108,6 +156,7 @@ class Daemon(Server):
 
     cfg = None
     deviceHive = None
+    dh_status = None
     events_queue = None
 
     base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'web')
@@ -121,9 +170,8 @@ class Daemon(Server):
 
         self.events_queue = deque(maxlen=10)
 
-        self.cfg = Config('config.json')
-        # change when DH will be fixed
-        # self.cfg = Config('config.json', update_callback=self._restart_dh)
+        self.cfg = Config('config.json', update_callback=self._restart_dh)
+        self.dh_status = DHStatus()
 
         self._web_thread = threading.Thread(
             target=self._web_loop, daemon=True, name='web')
@@ -152,7 +200,7 @@ class Daemon(Server):
     def _start_dh(self):
         logger.info('Start devicehive')
         self._dh_thread = threading.Thread(
-            target=self._dh_loop(), daemon=True, name='device_hive')
+            target=self._dh_loop, daemon=True, name='device_hive')
         self._dh_thread.start()
 
     def _stop_dh(self):
@@ -176,14 +224,20 @@ class Daemon(Server):
         self.serve_forever()
 
     def _dh_loop(self):
+        self.dh_status.set_connecting()
         self.deviceHive = DeviceHive(
             DeviceHiveHandler, self.cfg.data['deviceid'])
+        error = ''
         try:
+            self.dh_status.set_connected()
             self.deviceHive.connect(
                 self.cfg.data['url'], refresh_token=self.cfg.data['token'])
         except TransportError as e:
             logger.exception(e)
-        logger.info('Stop devicehive')
+            error = str(e)
+        finally:
+            self.dh_status.set_disconnected(error)
+            logger.info('Stop devicehive')
 
     def _process(self, data):
         self._process_buf = np.frombuffer(data, dtype=np.int16)
