@@ -52,7 +52,21 @@ class DeviceHiveHandler(Handler):
         self._device.subscribe_insert_commands()
 
     def handle_command_insert(self, command):
+        command.status = 'accepted'
+        command.save()
+        # TODO: react on command somehow
         print(command)
+
+    def send(self, data):
+        if isinstance(data, str):
+            notification = data
+        else:
+            try:
+                notification = json.dumps(data)
+            except TypeError:
+                notification = str(data)
+
+        self._device.send_notification(notification)
 
 
 class DHStatus(object):
@@ -76,6 +90,10 @@ class DHStatus(object):
     @property
     def status(self):
         return self._status
+
+    @property
+    def connected(self):
+        return self._status == self.CONNECTED
 
     def set_status(self, status, error=''):
         self._status = status
@@ -154,7 +172,7 @@ class Daemon(Server):
     _sample_rate = 16000
     _processor_sleep_time = 0.01
 
-    cfg = None
+    dh_cfg = None
     deviceHive = None
     dh_status = None
     events_queue = None
@@ -170,7 +188,7 @@ class Daemon(Server):
 
         self.events_queue = deque(maxlen=10)
 
-        self.cfg = Config('config.json', update_callback=self._restart_dh)
+        self.dh_cfg = Config('config.json', update_callback=self._restart_dh)
         self.dh_status = DHStatus()
 
         self._web_thread = threading.Thread(
@@ -183,13 +201,16 @@ class Daemon(Server):
         self._captor = Captor(
             min_time, max_time, self._ask_data_event, self._process)
 
-    def send(self, data):
-        # TODO: send to devicehive
-        pass
+    def send_dh(self, data):
+        if not self._is_dh_connected():
+            logger.warning('Devicehive is not connected')
+            return
+
+        self.deviceHive.handler.send(data)
 
     def start(self):
         self._start_web()
-        self.cfg.load()  # this will start DH thread automatically
+        self.dh_cfg.load()  # this will start DH thread automatically
         self._start_capture()
         self._start_process()
 
@@ -198,19 +219,29 @@ class Daemon(Server):
         self._web_thread.start()
 
     def _start_dh(self):
+        if self._is_dh_connected():
+            logging.info('Devicehive already started')
+            return
+
         logger.info('Start devicehive')
         self._dh_thread = threading.Thread(
             target=self._dh_loop, daemon=True, name='device_hive')
         self._dh_thread.start()
 
     def _stop_dh(self):
-        # TODO: find better way to reconnect
-        if self.deviceHive is not None and self.deviceHive._transport.connected:
-            self.deviceHive._transport.disconnect()
+        if not self._is_dh_connected():
+            logging.info('Devicehive already stopped')
+            return
+        self.deviceHive.transport.disconnect()
 
     def _restart_dh(self):
-        self._stop_dh()
+        if self._is_dh_connected():
+            self._stop_dh()
+
         self._start_dh()
+
+    def _is_dh_connected(self):
+        return self.dh_status.connected
 
     def _start_capture(self):
         logger.info('Start captor')
@@ -226,12 +257,13 @@ class Daemon(Server):
     def _dh_loop(self):
         self.dh_status.set_connecting()
         self.deviceHive = DeviceHive(
-            DeviceHiveHandler, self.cfg.data['deviceid'])
+            DeviceHiveHandler, self.dh_cfg.data['deviceid'])
         error = ''
         try:
             self.dh_status.set_connected()
-            self.deviceHive.connect(
-                self.cfg.data['url'], refresh_token=self.cfg.data['token'])
+            url = self.dh_cfg.data['url']
+            refresh_token = self.dh_cfg.data['token']
+            self.deviceHive.connect(url, refresh_token=refresh_token)
         except TransportError as e:
             logger.exception(e)
             error = str(e)
@@ -257,9 +289,9 @@ class Daemon(Server):
                         self._save_path, 'record_{:.0f}.wav'.format(time.time())
                     )
                     wavfile.write(f_path, self._sample_rate, self._process_buf)
-                    logger.info('"{}" saved.'.format(f_path))
+                    logger.info('"{}" saved'.format(f_path))
 
-                logger.info('Start processing.')
+                logger.info('Start processing')
                 predictions = proc.get_predictions(
                     self._sample_rate, self._process_buf)
                 formatted = format_predictions(predictions)
@@ -267,8 +299,9 @@ class Daemon(Server):
                     'Predictions: {}'.format(formatted))
 
                 self.events_queue.append((datetime.datetime.now(), formatted))
+                self.send_dh(predictions)
 
-                logger.info('Stop processing.')
+                logger.info('Stop processing')
                 self._process_buf = None
                 self._ask_data_event.set()
 
@@ -277,7 +310,7 @@ def run():
     d = Daemon()
     d.start()
     while True:
-        d.send(input())
+        d.send_dh(input())
 
 
 if __name__ == '__main__':

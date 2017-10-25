@@ -54,7 +54,7 @@ It will:
 * Capture data form your mic
 * Process data
 * Send predictions to web interface
-* Send predictions to devicehive (temporally disabled)
+* Send predictions to devicehive
 
 Also you can configure your devicehive connection though this web interface.
 

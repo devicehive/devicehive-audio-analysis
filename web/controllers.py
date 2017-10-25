@@ -22,7 +22,8 @@ from web.base import BaseController, Controller
 class Config(Controller):
 
     def get(self, handler, *args, **kwargs):
-        response = self.render_template('index.html', **handler.server.cfg.data)
+        data = handler.server.dh_cfg.data
+        response = self.render_template('index.html', **data)
 
         handler.send_response(HTTPStatus.OK)
         handler.send_header('Content-type', 'text/html')
@@ -36,7 +37,7 @@ class Config(Controller):
             'token': data.get("token")[0],
             'deviceid': data.get("deviceid")[0],
         }
-        handler.server.cfg.save(new_data)
+        handler.server.dh_cfg.save(new_data)
 
         self.get(handler)
 

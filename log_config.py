@@ -32,5 +32,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False
         },
+        'devicehive': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
     }
 }
