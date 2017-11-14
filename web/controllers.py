@@ -39,7 +39,9 @@ class Config(Controller):
         }
         handler.server.dh_cfg.save(new_data)
 
-        self.get(handler)
+        handler.send_response(HTTPStatus.FOUND)
+        handler.send_header('Location', '/')
+        handler.end_headers()
 
 
 class DHStatusUpdate(BaseController):
