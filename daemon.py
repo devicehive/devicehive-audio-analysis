@@ -232,7 +232,9 @@ class Daemon(Server):
         if not self._is_dh_connected():
             logging.info('Devicehive already stopped')
             return
-        self.deviceHive.transport.disconnect()
+        # TODO: Now it's only one proper way to call disconnect, we need
+        # implement better way to do it
+        self.deviceHive.transport.handler.handler.api.disconnect()
 
     def _restart_dh(self):
         if self._is_dh_connected():
