@@ -14,7 +14,6 @@
 
 from six import StringIO
 from six.moves import http_client
-
 from dh_webconfig.base import Controller, BaseController
 
 
