@@ -1,12 +1,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
 # Devicehive Audio Analysis
-Audio classification feature demo
-
-## Disclaimer
-This project was written and tested on python 3.5\
-It should work on any python 3.\*\
-No guaranties for python 2.\*
+Audio classification feature demo\
+Detailed description can be found [here](https://www.iotforall.com/tensorflow-sound-classification-machine-learning-applications/)
 
 ## Installation
 * Get a copy of this repo

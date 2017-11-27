@@ -20,31 +20,32 @@ limitations under the License.
   <title>AudioAnalysis - Audio capture events</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/main.css">
+  <link rel="stylesheet" href="/static/dh_config/main.css">
+  <style>
+    .event {
+        margin-bottom: 10px;
+    }
+
+    .event-timestamp {
+        margin-right: 20px;
+    }
+  </style>
 </head>
 <body>
-<div class="nav">
-  <div class="nav-item"><a href="/">DH Config</a></div>
-  <div class="nav-item"><a href="/events/">Capture events</a></div>
+<div class="header">
+  <div class="devecihive-logo-text"></div>
 </div>
-<div id="id_events_holder" class="events-holder">
+
+<div class="content">
+  <div id="id_events_holder" class="events-holder"></div>
 </div>
 </body>
 </html>
 
+<script src="/static/dh_config/main.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function() {
       const eventsHolder = document.getElementById('id_events_holder');
-      function httpGetAsync(url, callback)
-      {
-          var xmlHttp = new XMLHttpRequest();
-          xmlHttp.onreadystatechange = function() {
-              if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
-                  callback(xmlHttp.responseText);
-          };
-          xmlHttp.open("GET", url, true);
-          xmlHttp.send(null);
-      }
 
       function getEvents() {
           function setEvents(events) {

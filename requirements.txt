@@ -3,4 +3,6 @@ scipy==0.19.1
 resampy==0.2.0
 PyAudio==0.2.11
 tensorflow==1.3.0
-devicehive==2.1.0
+six==1.11.0
+devicehive==2.1.1
+-e git://github.com/devicehive/devicehive-python-webconfig.git@a792db1babcedb5baa68ec6ba6ebcf0041f20469#egg=devicehive_webconfig

@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .controllers import Config, Events, EventsUpdate, DHStatusUpdate
-from .base.controller import StaticController
+from .controllers import Events, EventsUpdate
 
 routes = [
-    (r'^/$', Config),
-    (r'^/status/$', DHStatusUpdate),
     (r'^/events/$', Events),
     (r'^/events/update/$', EventsUpdate),
-    (r'^/static/(?P<f_name>.+)$', StaticController),
 ]

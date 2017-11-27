@@ -32,15 +32,18 @@ class Captor(object):
     _sample_rate = 16000
     _capture_rate = _sample_rate*2  # bytes per second
     _ask_data_event = None
+    _shutdown_event = None
     _capture_thread = None
 
-    def __init__(self, min_time, max_time, ask_data_event, callback):
+    def __init__(self, min_time, max_time, ask_data_event, callback,
+                 shutdown_event=None):
         """
         Init capture class
         :param min_time: Minimum capture time to process (seconds)
         :param max_time: Maximum capture time to process (seconds)
         :param ask_data_event: Event to wait data call
         :param callback: Callable that will called with data
+        :param shutdown_event: Event to shutdown
         """
 
         if min_time > max_time:
@@ -49,17 +52,21 @@ class Captor(object):
         if not callable(callback):
             raise TypeError('"callback" is not callable')
 
+        if shutdown_event is None:
+            shutdown_event = threading.Event()
+
         self._min_time = min_time
         self._max_time = max_time
         self._ask_data_event = ask_data_event
+        self._shutdown_event = shutdown_event
         self._callback = callback
 
         self._min_data = self._min_time*self._capture_rate
         self._max_data = self._max_time*self._capture_rate
 
-        self._capture_thread = threading.Thread(
-            target=self._capture, daemon=True, name='captor'
-        )
+        self._capture_thread = threading.Thread(target=self._capture,
+                                                name='captor')
+        self._capture_thread.setDaemon(True)
 
     def start(self):
         """
@@ -77,7 +84,7 @@ class Captor(object):
         capture_buf = bytes()
 
         logger.info('Start recording.')
-        while True:
+        while not self._shutdown_event.is_set():
             if self._ask_data_event.is_set() \
                     and len(capture_buf) >= self._min_data:
                 self._callback(capture_buf)

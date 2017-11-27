@@ -12,51 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-from io import StringIO
-from http import HTTPStatus
+from six import StringIO
+from six.moves import http_client
 
-from web.base import BaseController, Controller
-
-
-class Config(Controller):
-
-    def get(self, handler, *args, **kwargs):
-        data = handler.server.dh_cfg.data
-        response = self.render_template('index.html', **data)
-
-        handler.send_response(HTTPStatus.OK)
-        handler.send_header('Content-type', 'text/html')
-        handler.end_headers()
-        handler.wfile.write(response.encode())
-
-    def post(self, handler, *args, **kwargs):
-        data = handler.post_vars
-        new_data = {
-            'url': data.get("url")[0],
-            'token': data.get("token")[0],
-            'deviceid': data.get("deviceid")[0],
-        }
-        handler.server.dh_cfg.save(new_data)
-
-        self.get(handler)
-
-
-class DHStatusUpdate(BaseController):
-    def get(self, handler, *args, **kwargs):
-        response = json.dumps(handler.server.dh_status.data)
-
-        handler.send_response(HTTPStatus.OK)
-        handler.send_header('Content-type', 'application/json')
-        handler.end_headers()
-        handler.wfile.write(response.encode())
+from dh_webconfig.base import Controller, BaseController
 
 
 class Events(Controller):
     def get(self, handler, *args, **kwargs):
         response = self.render_template('events.html')
 
-        handler.send_response(HTTPStatus.OK)
+        handler.send_response(http_client.OK)
         handler.send_header('Content-type', 'text/html')
         handler.end_headers()
         handler.wfile.write(response.encode())
@@ -64,17 +30,18 @@ class Events(Controller):
 
 class EventsUpdate(Controller):
     def get(self, handler, *args, **kwargs):
-        with StringIO() as f:
-            for timestamp, predictions in handler.server.events_queue:
-                data = {
-                    'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format(timestamp),
-                    'predictions': predictions
-                }
-                f.writelines(self.render_template('event.html', **data))
+        f = StringIO()
+        for timestamp, predictions in handler.server.server.events_queue:
+            data = {
+                'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format(timestamp),
+                'predictions': predictions
+            }
+            f.writelines(self.render_template('event.html', **data))
 
-            response = f.getvalue()
+        response = f.getvalue()
+        f.close()
 
-        handler.send_response(HTTPStatus.OK)
+        handler.send_response(http_client.OK)
         handler.send_header('Content-type', 'text/html')
         handler.end_headers()
         handler.wfile.write(response.encode())
