@@ -21,7 +21,7 @@ import datetime
 import numpy as np
 from collections import deque
 from scipy.io import wavfile
-from dh_webconfig import Server, Handler
+from devicehive_webconfig import Server, Handler
 
 from audio.captor import Captor
 from audio.processor import WavProcessor, format_predictions
